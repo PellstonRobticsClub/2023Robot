@@ -24,7 +24,7 @@ public class ElevatorUp extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    elevator.drive(Constants.ExtenderConstants.Speed);
+    elevator.drive(Constants.ElevatorConstants.Speed);
   }
 
   // Called once the command ends or is interrupted.

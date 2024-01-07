@@ -83,6 +83,7 @@ public class DriveSubsystem extends SubsystemBase {
       try{
         Thread.sleep(1000);
         zeroHeading();
+        m_gyro.setAngleAdjustment(180);
       }catch(Exception e){
 
       }
@@ -99,6 +100,9 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("gyro heading", m_gyro.getAngle());
     SmartDashboard.putNumber("pitch", m_gyro.getPitch());
     SmartDashboard.putNumber("roll", m_gyro.getRoll());
+    SmartDashboard.putNumber("distance", getAverageDistance());
+    SmartDashboard.putString("pose", getPose().toString());
+    
     periodicTimer = 0;
     }
     periodicTimer++;
@@ -155,9 +159,9 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("X Speed", xSpeed);
     SmartDashboard.putNumber("y speed", ySpeed);
     SmartDashboard.putNumber("rot", rot);
-    //xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
-    //ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
-    //rot *= DriveConstants.kMaxSpeedMetersPerSecond;
+    xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    rot *= DriveConstants.kMaxSpeedMetersPerSecond;
     var swerveModuleStates =
         DriveConstants.kDriveKinematics.toSwerveModuleStates(
             feildOrientation
@@ -191,12 +195,22 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.resetEncoders();
     m_frontRight.resetEncoders();
     m_rearRight.resetEncoders();
+    m_gyro.setAngleAdjustment(0);
     m_gyro.reset();
+    
   }
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
+   // 
+  }
+
+  public void stop(){
+    m_frontLeft.stop();
+    m_frontRight.stop();
+    m_rearLeft.stop();
+    m_rearRight.stop();
   }
 
   /**
@@ -229,5 +243,25 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
 
+  
+  public double getPitch(){
+    return m_gyro.getPitch();
+  }
+
+  public double getAverageDistance(){
+    double distance = 
+      (Math.abs(m_frontLeft.getDistance()) +
+      Math.abs(m_frontRight.getDistance()) +
+      Math.abs(m_rearLeft.getDistance())+
+      Math.abs(m_rearRight.getDistance()))/4;
+      return distance;
+  }
+
+  public void setX() {
+    m_frontLeft.setAngleForX(45);
+    m_frontRight.setAngleForX(-45);
+    m_rearLeft.setAngleForX(-45);
+    m_rearRight.setAngleForX(45);
+  }
 
 }

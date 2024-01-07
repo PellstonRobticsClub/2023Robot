@@ -4,38 +4,42 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
-import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.DriveSubsystem;
 
-public class ElevatorDown extends CommandBase {
-  private static ElevatorSubsystem  elevator;
-  /** Creates a new ElevatorStop. */
-  public ElevatorDown(ElevatorSubsystem elevatorIn) {
-    elevator = elevatorIn;
+public class preBalanceCommand extends CommandBase {
+  private DriveSubsystem m_drive;
+  /** Creates a new balanceCommand. */
+  public preBalanceCommand(DriveSubsystem driveIn) {
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(elevator);
+    m_drive = driveIn;
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_drive.switchBrake();
+    m_drive.resetEncoders();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    elevator.drive(-0.5);
+    
+    m_drive.drive(1, -.3, 0, 0);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    elevator.drive(0);
+    m_drive.drive(1, 0, 0, 0);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    //SmartDashboard.putNumber("distance", m_drive.getAverageDistance());
+    return (m_drive.getAverageDistance() > 1.5);
   }
 }

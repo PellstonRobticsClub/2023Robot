@@ -29,14 +29,23 @@ public class DriveWithJoystick extends CommandBase {
   public void execute() {
     double scale = -m_Joystick.getThrottle();
     scale += 1;
-    scale /= 20;
-    scale += .5;
+    scale *= 0.15;
+    scale += .7;
     SmartDashboard.putNumber("speed scale", scale);
-    m_chassis.drive(
+    if(m_Joystick.getRawButton(1)){
+      m_chassis.drive(
+                    scale,
+                    0,
+                    -m_Joystick.getX()*scale,
+                    0);
+    } else {
+      m_chassis.drive(
                     scale,
                     -m_Joystick.getY()*scale,
                     -m_Joystick.getX()*scale,
                     -m_Joystick.getZ()*scale);
+    }
+    
   }
 
   // Called once the command ends or is interrupted.

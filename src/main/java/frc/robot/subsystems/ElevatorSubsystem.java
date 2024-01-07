@@ -22,7 +22,7 @@ public class ElevatorSubsystem extends PIDSubsystem {
   public ElevatorSubsystem() {
     super(
         // The PIDController used by the subsystem
-        new PIDController(1, .3, 0));
+        new PIDController(2, .3, 0));
         elevatorMotor.setInverted(false);
         this.disable();
         getController().setTolerance(.1);
@@ -51,12 +51,13 @@ public class ElevatorSubsystem extends PIDSubsystem {
       
   }
   public void drive(double speed){
-    if (potentiometer.getAverageVoltage() > 4.7 && speed > 0){
+    if (potentiometer.getAverageVoltage() > 3.8 && speed > 0){
       speed = 0;
     }
     if (potentiometer.getAverageVoltage() < .8 && speed < 0 ){
       speed = 0;
     }
+    
     elevatorMotor.set(ControlMode.PercentOutput, speed);
   }
 

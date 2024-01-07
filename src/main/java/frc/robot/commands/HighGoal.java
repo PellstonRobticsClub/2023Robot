@@ -17,6 +17,6 @@ public class HighGoal extends SequentialCommandGroup {
   public HighGoal(ElevatorSubsystem elevator, ExtenderSubsystem extender) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
-    addCommands(new Pickup(elevator, extender), new extenderToX(extender, 11.69), new ElevatorToX(elevator, 4.4) );
+    addCommands(new ElevatorToX(elevator, 2.58), new extenderToX(extender, 11.69), new ElevatorToX(elevator, 3.55) );
   }
 }

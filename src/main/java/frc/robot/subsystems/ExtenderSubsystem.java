@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.PIDSubsystem;
 import frc.robot.Constants;
@@ -16,13 +17,15 @@ import frc.robot.Constants;
 public class ExtenderSubsystem extends PIDSubsystem {
   private static final TalonSRX extenderMotor = new TalonSRX(Constants.ExtenderConstants.MotorID);
   private static final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(Constants.ExtenderConstants.absoluteEncoderPort);
+  private Joystick drivestick;
   /** Creates a new ExtenderSubsystem. */
-  public ExtenderSubsystem() {
+  public ExtenderSubsystem(Joystick joystickIn) {
     super(
         // The PIDController used by the subsystem
         new PIDController(1, 0, 0));
     extenderMotor.setInverted(true);
     getController().setTolerance(.2);
+    drivestick = joystickIn;
     this.disable();
   }
 
@@ -43,7 +46,7 @@ public class ExtenderSubsystem extends PIDSubsystem {
     if (getAbsoPos() > 12 && speed >0) {
       speed =0;
     }
-    if (getAbsoPos() < .1 && speed < 0){
+    if ((getAbsoPos() < -1.25 && speed < 0) && !drivestick.getRawButton(8)){
       speed =0;
     }
     extenderMotor.set(ControlMode.PercentOutput, speed);
@@ -59,7 +62,7 @@ public class ExtenderSubsystem extends PIDSubsystem {
   }
 
   public double getAbsoPos(){
-    return absoluteEncoder.get() - .12;
+    return absoluteEncoder.get()- .6;
   }
 
   public boolean atTarget(){

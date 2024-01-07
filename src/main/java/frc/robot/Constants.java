@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
@@ -19,6 +21,29 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static final class Swerve {
+
+    public static final double angleGearRatio = (150.0 / 7.0);
+    public static final boolean angleInvert = true;
+    public static final double voltageComp = 12.0;
+
+    /* Swerve Profiling Values */
+    public static final double maxSpeed = 4.5; // meters per second  //4.5
+    public static final double maxAngularVelocity = 6; // 11.5
+
+    /* Angle Motor PID Values */
+    public static final double angleKP = 0.01;
+    public static final double angleKI = 0.0;
+    public static final double angleKD = 0.0;
+    public static final double angleKFF = 0.0;
+
+    public static final IdleMode angleNeutralMode = IdleMode.kBrake;
+
+    /* Swerve Current Limiting */
+    public static final int angleContinuousCurrentLimit = 20;
+
+    public static final double angleConversionFactor = 360.0 / angleGearRatio;
+  }
   public static final class DriveConstants {
     public static final int kFrontLeftDriveMotorPort = 1;
     public static final int kRearLeftDriveMotorPort = 3;
@@ -45,10 +70,15 @@ public final class Constants {
     public static final boolean kFrontRightDriveMotorReversed = false;
     public static final boolean kRearRightDriveMotorReversed = false;
 
-    public static final double kFrontLeftAnalogEncoderOffset = 4.0455;
-    public static final double kRearLeftAnalogEncoderOffset = 2.8235;
-    public static final double kFrontRightAnalogEncoderOffset = 3.7955;
-    public static final double kRearRightAnalogEncoderOffset = .640;
+    //public static final double kFrontLeftAnalogEncoderOffset = 4.0455;
+    //public static final double kRearLeftAnalogEncoderOffset = 2.8235;
+    //public static final double kFrontRightAnalogEncoderOffset = 3.7955;
+    //public static final double kRearRightAnalogEncoderOffset = .640;
+
+    public static final double kFrontLeftAnalogEncoderOffset = 231.79;
+    public static final double kRearLeftAnalogEncoderOffset = 161.77;
+    public static final double kFrontRightAnalogEncoderOffset = 217.47;
+    public static final double kRearRightAnalogEncoderOffset = 36.67;
 
     // Distance between centers of right and left wheels on robot in meters
     public static final double kTrackWidth = 0.42545;
@@ -85,7 +115,7 @@ public final class Constants {
     public static final double kDriveGearRatio = 1/6.75;
     public static final double kDriveEncoderDistancePerPulse = 
         // Assumes the encoders are directly mounted on the wheel shafts
-       (kWheelDiameterMeters * Math.PI) / (double) kEncoderCPR* kDriveGearRatio * 1.1875;
+       (kWheelDiameterMeters * Math.PI) / (double) kEncoderCPR* kDriveGearRatio * 1.2;
 
     private static final double kturningEncoderCountsPerRevolution = 1;
     private static final double kTurningEncoderGearRatio = .04667;
@@ -95,7 +125,7 @@ public final class Constants {
     public static final double kPModuleTurningController = .5;
 
     public static final double kPModuleDriveController = .75;
-    public static double kPModuleDriveSlewRate = 1;
+    public static double kPModuleDriveSlewRate = 2;
   }
 
   public static final class OIConstants {
@@ -103,8 +133,8 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 1.5;
-    public static final double kMaxAccelerationMetersPerSecondSquared = .7;
+    public static final double kMaxSpeedMetersPerSecond = 2;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 1.5;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
@@ -121,7 +151,7 @@ public final class Constants {
 
     public static final int potentiometerAnologID = 6;
     public static final int MotorID = 3;
-    public static final double Speed = 1;
+    public static final double Speed = .8;
 
   }
 
@@ -136,6 +166,7 @@ public final class Constants {
 
   public static final class IntakeConstants{
     public static final int motorID = 1;
+    public static int motor2ID =4;
 
   }
   public static final class AutonConfig{

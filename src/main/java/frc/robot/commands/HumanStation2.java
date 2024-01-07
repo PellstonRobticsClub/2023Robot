@@ -5,18 +5,18 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ExtenderSubsystem;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class MidGoal extends SequentialCommandGroup {
-  /** Creates a new MidGoal. */
-  public MidGoal(ElevatorSubsystem elevator, ExtenderSubsystem extender) {
+public class HumanStation2 extends ParallelCommandGroup {
+  /** Creates a new preDrivePos. */
+  public HumanStation2(ElevatorSubsystem elevator, ExtenderSubsystem extender) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
-    addCommands(new ElevatorToX(elevator, 2), new extenderToX(extender, 11.8), new ElevatorToX(elevator, 3.12 ));
+    addCommands(new ElevatorToX(elevator, 3.18), new extenderToX(extender, 1.17));
   }
+  
 }

@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ExtenderSubsystem;
@@ -16,6 +17,6 @@ public class drivePostion extends SequentialCommandGroup {
   public drivePostion(ElevatorSubsystem elevator, ExtenderSubsystem extender) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
-    addCommands(new DrivePosOne(elevator, extender), new DrivePosTwo(elevator, extender));
+    addCommands(new ParallelCommandGroup(new ElevatorToX(elevator, 1.6), new extenderToX(extender, 6.286)), new DrivePosTwo(elevator, extender));
   }
 }
