@@ -6,7 +6,9 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -71,29 +73,29 @@ public final class Constants {
     public static final double kvVoltSecondsPerMeter = 0.8;
     public static final double kaVoltSecondsSquaredPerMeter = 0.15;
 
-    public static final double kMaxSpeedMetersPerSecond = 3;
+    public static final double kMaxSpeedMetersPerSecond = 5;
   }
 
   public static final class ModuleConstants {
     public static final double kMaxModuleAngularSpeedDegreesPerSecond = 360;
     public static final double kMaxModuleAngularAccelerationDegreesPerSecondSquared = 360;
 
-    public static final int kEncoderCPR = 1024;
-    public static final double kWheelDiameterMeters = 0.15;
-    public static final double kDriveEncoderDistancePerPulse =
+    public static final int kEncoderCPR = 1;
+    public static final double kWheelDiameterMeters = Units.inchesToMeters(4);
+    public static final double kDriveGearRatio = 1/6.75;
+    public static final double kDriveEncoderDistancePerPulse = 
         // Assumes the encoders are directly mounted on the wheel shafts
-        (kWheelDiameterMeters * Math.PI) / (double) kEncoderCPR;
+       (kWheelDiameterMeters * Math.PI) / (double) kEncoderCPR* kDriveGearRatio * 1.1875;
 
-    private static final int kturningEncoderCountsPerRevolution = 1;
-    private static final double kTurningEncoderGearRatio = 1/(150/7);
+    private static final double kturningEncoderCountsPerRevolution = 1;
+    private static final double kTurningEncoderGearRatio = .04667;
     public static final double kTurningEncoderDistancePerPulse =
-        
         kturningEncoderCountsPerRevolution * kTurningEncoderGearRatio * (2 * Math.PI);
 
     public static final double kPModuleTurningController = .5;
 
-    public static final double kPModuleDriveController = 1;
-    public static double kPModuleDriveSlewRate = .5;
+    public static final double kPModuleDriveController = .75;
+    public static double kPModuleDriveSlewRate = 1;
   }
 
   public static final class OIConstants {
@@ -101,18 +103,49 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 1;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    public static final double kMaxSpeedMetersPerSecond = 1.5;
+    public static final double kMaxAccelerationMetersPerSecondSquared = .7;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
-    public static final double kPXController = 1;
-    public static final double kPYController = 1;
+    public static final double kPXController = 1.5;
+    public static final double kPYController = 1.5;
     public static final double kPThetaController = 1;
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
         new TrapezoidProfile.Constraints(
             kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+  }
+  public static final class ElevatorConstants{
+
+    public static final int potentiometerAnologID = 6;
+    public static final int MotorID = 3;
+    public static final double Speed = 1;
+
+  }
+
+  public static final class ExtenderConstants{
+
+    public static final int absoluteEncoderPort = 0;
+    public static final int[] encoderPorts = {1,2};
+    public static final int MotorID = 2;
+    public static final double Speed = .3;
+
+  }
+
+  public static final class IntakeConstants{
+    public static final int motorID = 1;
+
+  }
+  public static final class AutonConfig{
+    public static final TrajectoryConfig trajectoryConfig =
+        new TrajectoryConfig(
+                AutoConstants.kMaxSpeedMetersPerSecond,
+                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            // Add kinematics to ensure max speed is actually obeyed
+            .setKinematics(DriveConstants.kDriveKinematics);
+
+    
   }
 }

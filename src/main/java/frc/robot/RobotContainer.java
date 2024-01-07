@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,15 +13,31 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.DriveWithJoystick;
+import frc.robot.commands.ElevatorDown;
+import frc.robot.commands.ElevatorToX;
+import frc.robot.commands.ElevatorUp;
+import frc.robot.commands.ExtenderIn;
+import frc.robot.commands.ExtenderOut;
+import frc.robot.commands.HighGoal;
+import frc.robot.commands.Pickup;
+import frc.robot.commands.drivePostion;
+import frc.robot.commands.HighGoalSeq;
+import frc.robot.commands.MidGoal;
+import frc.robot.commands.extenderToX;
+import frc.robot.commands.intakeWithJoystick;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.ExtenderSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
@@ -33,28 +50,46 @@ import java.util.List;
  */
 public class RobotContainer {
   // The robot's subsystems
-  public static final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private static final ElevatorSubsystem m_elevator = new ElevatorSubsystem();
+  private static final ExtenderSubsystem m_extender = new ExtenderSubsystem();
+  private static final IntakeSubsystem m_intake = new IntakeSubsystem();
+  TrajectoryConfig config =
+        new TrajectoryConfig(
+                AutoConstants.kMaxSpeedMetersPerSecond,
+                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            // Add kinematics to ensure max speed is actually obeyed
+            .setKinematics(DriveConstants.kDriveKinematics);
+  private Trajectory exampleTrajectory;
+
 
   // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+  Joystick m_driverController = new Joystick(OIConstants.kDriverControllerPort);
+  XboxController m_manipulator = new XboxController(1);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    exampleTrajectory =
+        TrajectoryGenerator.generateTrajectory(
+            // Start at the origin facing the +X direction
+            new Pose2d(0, 0, new Rotation2d(0)),
+            // Pass through these two interior waypoints, making an 's' curve path
+            List.of(new Translation2d(1, 0) ),
+            // End 3 meters straight ahead of where we started, facing forward
+            new Pose2d(2, 0, new Rotation2d(0)),
+            config);
     // Configure the button bindings
     configureButtonBindings();
+    CameraServer.startAutomaticCapture();
 
     // Configure default commands
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
-        new RunCommand(
-            () ->
-                m_robotDrive.drive(
-                    -m_driverController.getLeftY(),
-                    -m_driverController.getLeftX(),
-                    -m_driverController.getRawAxis(2),
-                    true),
-            m_robotDrive));
+        new DriveWithJoystick(m_driverController, m_robotDrive));
+    //m_elevator.setDefaultCommand(new ElevatorStop(m_elevator));
+    m_intake.setDefaultCommand(new intakeWithJoystick(m_intake, m_manipulator));
+
   }
 
 
@@ -65,11 +100,30 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(m_driverController, 1).onTrue(
+    new JoystickButton(m_driverController, 3).onTrue(
         new InstantCommand(
             () ->
                 m_robotDrive.resetEncoders())
     );
+    new JoystickButton(m_driverController, 7).onTrue(
+        new InstantCommand(
+            () ->
+                m_robotDrive.switchDrive())
+    );
+    new JoystickButton(m_driverController, 11).onTrue(
+      new InstantCommand(
+        () ->
+        m_robotDrive.switchBrake()
+      )
+    );
+    new JoystickButton(m_manipulator, 7).whileTrue(new ExtenderIn(m_extender));
+    new JoystickButton(m_manipulator, 8).whileTrue(new ExtenderOut(m_extender));
+    new JoystickButton(m_manipulator, 6).whileTrue(new ElevatorUp(m_elevator));
+    new JoystickButton(m_manipulator, 5).whileTrue(new ElevatorDown(m_elevator));
+    new JoystickButton(m_manipulator, 3).onTrue(new drivePostion(m_elevator, m_extender));
+    new JoystickButton(m_manipulator, 1).onTrue(new Pickup(m_elevator, m_extender));
+    new JoystickButton(m_manipulator, 4).onTrue(new HighGoal(m_elevator, m_extender));
+    new JoystickButton(m_manipulator, 2).onTrue(new MidGoal(m_elevator, m_extender));
   }
 
   /**
@@ -79,23 +133,10 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // Create config for trajectory
-    TrajectoryConfig config =
-        new TrajectoryConfig(
-                AutoConstants.kMaxSpeedMetersPerSecond,
-                AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // Add kinematics to ensure max speed is actually obeyed
-            .setKinematics(DriveConstants.kDriveKinematics);
+    
 
     // An example trajectory to follow.  All units in meters.
-    Trajectory exampleTrajectory =
-        TrajectoryGenerator.generateTrajectory(
-            // Start at the origin facing the +X direction
-            new Pose2d(0, 0, new Rotation2d(0)),
-            // Pass through these two interior waypoints, making an 's' curve path
-            List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-            // End 3 meters straight ahead of where we started, facing forward
-            new Pose2d(3, 0, new Rotation2d(0)),
-            config);
+    
 
     var thetaController =
         new ProfiledPIDController(
@@ -119,6 +160,6 @@ public class RobotContainer {
     m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
 
     // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(1,0, 0, 0));
   }
 }

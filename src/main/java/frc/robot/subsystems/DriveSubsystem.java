@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
+  private int periodicTimer = 1;
   // Robot swerve modules
   private final SwerveModule m_frontLeft =
       new SwerveModule(
@@ -62,6 +63,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
+  private boolean feildOrientation = true;
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry =
@@ -89,10 +91,17 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (periodicTimer > 10){
     m_frontLeft.update();
     m_frontRight.update();
     m_rearLeft.update();
     m_rearRight.update();
+    SmartDashboard.putNumber("gyro heading", m_gyro.getAngle());
+    SmartDashboard.putNumber("pitch", m_gyro.getPitch());
+    SmartDashboard.putNumber("roll", m_gyro.getRoll());
+    periodicTimer = 0;
+    }
+    periodicTimer++;
     // Update the odometry in the periodic block
     m_odometry.update(
         m_gyro.getRotation2d(),
@@ -130,6 +139,10 @@ public class DriveSubsystem extends SubsystemBase {
         pose);
   }
 
+  public void switchDrive(){
+    feildOrientation = !feildOrientation;
+  }
+
   /**
    * Method to drive the robot using joystick info.
    *
@@ -138,13 +151,16 @@ public class DriveSubsystem extends SubsystemBase {
    * @param rot Angular rate of the robot.
    * @param fieldRelative Whether the provided x and y speeds are relative to the field.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+  public void drive(double scale, double xSpeed, double ySpeed, double rot) {
     SmartDashboard.putNumber("X Speed", xSpeed);
     SmartDashboard.putNumber("y speed", ySpeed);
     SmartDashboard.putNumber("rot", rot);
+    //xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    //ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    //rot *= DriveConstants.kMaxSpeedMetersPerSecond;
     var swerveModuleStates =
         DriveConstants.kDriveKinematics.toSwerveModuleStates(
-            fieldRelative
+            feildOrientation
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, m_gyro.getRotation2d())
                 : new ChassisSpeeds(xSpeed, ySpeed, rot));
     SwerveDriveKinematics.desaturateWheelSpeeds(
@@ -175,6 +191,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.resetEncoders();
     m_frontRight.resetEncoders();
     m_rearRight.resetEncoders();
+    m_gyro.reset();
   }
 
   /** Zeroes the heading of the robot. */
@@ -198,6 +215,17 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+  }
+
+  public void switchBrake(){
+    m_frontLeft.switchBrake();
+    m_frontRight.switchBrake();
+    m_rearLeft.switchBrake();
+    m_rearRight.switchBrake();
+  }
+
+  public double getRoll(){
+    return m_gyro.getRoll();
   }
 
 
