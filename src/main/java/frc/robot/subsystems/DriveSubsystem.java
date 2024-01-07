@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
+  private int periodicTimer = 1;
   // Robot swerve modules
   private final SwerveModule m_frontLeft =
       new SwerveModule(
@@ -62,6 +63,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(SPI.Port.kMXP);
+  private boolean feildOrientation = true;
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry =
@@ -81,6 +83,7 @@ public class DriveSubsystem extends SubsystemBase {
       try{
         Thread.sleep(1000);
         zeroHeading();
+        m_gyro.setAngleAdjustment(180);
       }catch(Exception e){
 
       }
@@ -89,10 +92,20 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (periodicTimer > 10){
     m_frontLeft.update();
     m_frontRight.update();
     m_rearLeft.update();
     m_rearRight.update();
+    SmartDashboard.putNumber("gyro heading", m_gyro.getAngle());
+    SmartDashboard.putNumber("pitch", m_gyro.getPitch());
+    SmartDashboard.putNumber("roll", m_gyro.getRoll());
+    SmartDashboard.putNumber("distance", getAverageDistance());
+    SmartDashboard.putString("pose", getPose().toString());
+    
+    periodicTimer = 0;
+    }
+    periodicTimer++;
     // Update the odometry in the periodic block
     m_odometry.update(
         m_gyro.getRotation2d(),
@@ -130,6 +143,10 @@ public class DriveSubsystem extends SubsystemBase {
         pose);
   }
 
+  public void switchDrive(){
+    feildOrientation = !feildOrientation;
+  }
+
   /**
    * Method to drive the robot using joystick info.
    *
@@ -138,13 +155,16 @@ public class DriveSubsystem extends SubsystemBase {
    * @param rot Angular rate of the robot.
    * @param fieldRelative Whether the provided x and y speeds are relative to the field.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+  public void drive(double scale, double xSpeed, double ySpeed, double rot) {
     SmartDashboard.putNumber("X Speed", xSpeed);
     SmartDashboard.putNumber("y speed", ySpeed);
     SmartDashboard.putNumber("rot", rot);
+    xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond;
+    rot *= DriveConstants.kMaxSpeedMetersPerSecond;
     var swerveModuleStates =
         DriveConstants.kDriveKinematics.toSwerveModuleStates(
-            fieldRelative
+            feildOrientation
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, m_gyro.getRotation2d())
                 : new ChassisSpeeds(xSpeed, ySpeed, rot));
     SwerveDriveKinematics.desaturateWheelSpeeds(
@@ -175,11 +195,22 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.resetEncoders();
     m_frontRight.resetEncoders();
     m_rearRight.resetEncoders();
+    m_gyro.setAngleAdjustment(0);
+    m_gyro.reset();
+    
   }
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
+   // 
+  }
+
+  public void stop(){
+    m_frontLeft.stop();
+    m_frontRight.stop();
+    m_rearLeft.stop();
+    m_rearRight.stop();
   }
 
   /**
@@ -200,6 +231,37 @@ public class DriveSubsystem extends SubsystemBase {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 
+  public void switchBrake(){
+    m_frontLeft.switchBrake();
+    m_frontRight.switchBrake();
+    m_rearLeft.switchBrake();
+    m_rearRight.switchBrake();
+  }
 
+  public double getRoll(){
+    return m_gyro.getRoll();
+  }
+
+
+  
+  public double getPitch(){
+    return m_gyro.getPitch();
+  }
+
+  public double getAverageDistance(){
+    double distance = 
+      (Math.abs(m_frontLeft.getDistance()) +
+      Math.abs(m_frontRight.getDistance()) +
+      Math.abs(m_rearLeft.getDistance())+
+      Math.abs(m_rearRight.getDistance()))/4;
+      return distance;
+  }
+
+  public void setX() {
+    m_frontLeft.setAngleForX(45);
+    m_frontRight.setAngleForX(-45);
+    m_rearLeft.setAngleForX(-45);
+    m_rearRight.setAngleForX(45);
+  }
 
 }
